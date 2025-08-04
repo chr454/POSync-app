@@ -1,0 +1,127 @@
+/* === GLOBAL RESET === */
+html, body, [class*="css"] {
+    font-family: "Segoe UI", sans-serif;
+    font-size: 14px;
+    background-color: #f5f7fa;
+    color: #1f2d3d;
+    margin: 0;
+    padding: 0;
+}
+
+/* === HEADINGS === */
+h1, h2, h3 {
+    margin-bottom: 0.5rem;
+}
+h1 {
+    font-size: 32px;
+    color: #1f2d3d;
+    font-weight: 700;
+}
+h2 {
+    font-size: 24px;
+    font-weight: 600;
+}
+h3 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #1f2d3d;
+}
+
+/* === HERO SECTION === */
+.hero {
+    text-align: center;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+.hero p {
+    font-size: 16px;
+    color: #555;
+}
+
+/* === CARD METRICS === */
+.card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    padding: 1.2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+.card:hover {
+    box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+.card h3 {
+    color: #f47b20;
+    font-size: 16px;
+    margin-bottom: 0.5rem;
+}
+.card p {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1f2d3d;
+}
+
+/* === SIDEBAR === */
+.sidebar .streamlit-expanderHeader {
+    font-size: 16px;
+    font-weight: bold;
+}
+section[data-testid="stSidebar"] {
+    background-color: #ffffff;
+    border-right: 1px solid #eee;
+}
+
+/* === BUTTONS === */
+button, .stButton>button {
+    background-color: #f47b20 !important;
+    color: white !important;
+    border: none;
+    padding: 0.5rem 1.2rem !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+button:hover, .stButton>button:hover {
+    background-color: #d96714 !important;
+}
+
+/* === FORM CONTAINERS === */
+.form-section {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0px 1px 4px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+}
+
+/* === PAGE CONTAINER === */
+.page-container {
+    background-color: white;
+    padding: 2.5rem;
+    border-radius: 14px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+
+/* === TABLES === */
+.stDataFrame {
+    box-shadow: 0px 1px 4px rgba(0,0,0,0.05) !important;
+    border: none !important;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* === INPUTS === */
+input, .stNumberInput input {
+    padding: 0.4rem !important;
+    border-radius: 5px !important;
+}
+
+/* === TEXT === */
+p {
+    color: #444;
+}

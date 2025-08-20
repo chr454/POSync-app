@@ -78,15 +78,13 @@ if st.button("🔍 Reconcile Cash Summary"):
 # =============================
 # 🏛 CAPITAL (SYSTEM) RECONCILIATION
 # =============================
-# CAPITAL (SYSTEM) RECONCILIATION
-
 st.header("🏛 Capital / System Summary")
 
 st.subheader("📥 Opening Side")
 capital_opening = st.session_state.get("capital_opening_balances", [])
 external_cash_entries = st.session_state.get("external_additional_cash", [])
 capital_inflows = st.session_state.get("capital_inflows", [])
-opening_cash = st.session_state.get("opening_cash", 0.0)
+opening_cash_entries = st.session_state.get("opening_cash_capital", [])
 
 # Opening POS
 total_opening_bal = sum(entry["balance"] for entry in capital_opening)
@@ -94,34 +92,51 @@ st.write("**POS Opening Balances:**")
 for entry in capital_opening:
     st.markdown(f"- {entry['pos']}: ₦{entry['balance']:,.2f}")
 
+# Opening Cash (System)
+total_opening_cash = sum(entry["amount"] for entry in opening_cash_entries)
+st.write(f"**Opening Cash (System):** ₦{total_opening_cash:,.2f}")
+for entry in opening_cash_entries:
+    st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
+
 # External cash
 total_external_cash = sum(entry["amount"] for entry in external_cash_entries)
+st.write(f"**External Additional Cash:** ₦{total_external_cash:,.2f}")
+for entry in external_cash_entries:
+    st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
 
 # Inflows
 total_inflows = sum(entry["amount"] for entry in capital_inflows)
-
-st.write(f"**Opening Cash:** ₦{opening_cash:,.2f}")
-st.write(f"**External Additional Cash:** ₦{total_external_cash:,.2f}")
 st.write(f"**Capital Inflows:** ₦{total_inflows:,.2f}")
+for entry in capital_inflows:
+    st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
 
-capital_opening_side = opening_cash + total_opening_bal + total_external_cash + total_inflows
+capital_opening_side = total_opening_bal + total_opening_cash + total_external_cash + total_inflows
 st.success(f"Total Opening Side: ₦{capital_opening_side:,.2f}")
 
 st.subheader("📤 Closing Side")
 capital_closing = st.session_state.get("capital_closing_balances", [])
 capital_outflows = st.session_state.get("capital_outflows", [])
-closing_cash = st.session_state.get("closing_cash", 0.0)
+closing_cash_entries = st.session_state.get("closing_cash_capital", [])
 
 # Closing POS
 total_closing_bal = sum(entry["balance"] for entry in capital_closing)
+st.write("**POS Closing Balances:**")
+for entry in capital_closing:
+    st.markdown(f"- {entry['pos']}: ₦{entry['balance']:,.2f}")
+
+# Closing Cash (System)
+total_closing_cash = sum(entry["amount"] for entry in closing_cash_entries)
+st.write(f"**Closing Cash (System):** ₦{total_closing_cash:,.2f}")
+for entry in closing_cash_entries:
+    st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
 
 # Outflows
 total_outflows = sum(entry["amount"] for entry in capital_outflows)
-
-st.write(f"**Closing Cash:** ₦{closing_cash:,.2f}")
 st.write(f"**Capital Outflows:** ₦{total_outflows:,.2f}")
+for entry in capital_outflows:
+    st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
 
-capital_closing_side = closing_cash + total_closing_bal + total_outflows
+capital_closing_side = total_closing_bal + total_closing_cash + total_outflows
 st.error(f"Total Closing Side: ₦{capital_closing_side:,.2f}")
 
 # Result

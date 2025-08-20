@@ -92,6 +92,7 @@ with st.form("other_pos_form", clear_on_submit=True):
 
 st.markdown('</div>', unsafe_allow_html=True)
 
+
 # === Transaction Tables ===
 st.markdown("---")
 st.subheader("📋 Today's Recorded Transactions")
@@ -100,12 +101,28 @@ st.subheader("📋 Today's Recorded Transactions")
 st.markdown("#### Deposits")
 if st.session_state.deposits:
     deposit_df = pd.DataFrame(st.session_state.deposits)
-    st.dataframe(deposit_df, use_container_width=True)
 
+    edited_deposit_df = st.data_editor(
+        deposit_df,
+        num_rows="dynamic",  # allows adding rows
+        use_container_width=True
+    )
+
+    # Save back edits
+    st.session_state.deposits = edited_deposit_df.to_dict("records")
+
+    # Delete buttons
     for i in range(len(st.session_state.deposits)):
-        if st.button(f"🗑 Delete Deposit {i+1}", key=f"del_dep_{i}"):
-            st.session_state.deposits.pop(i)
-            st.rerun()
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            if st.button(f"🗑", key=f"del_dep_{i}"):
+                st.session_state.deposits.pop(i)
+                st.rerun()
+        with col2:
+            if st.button(f"➕ Add Row Below Deposit {i+1}", key=f"add_dep_{i}"):
+                st.session_state.deposits.insert(i+1, {col: "" for col in deposit_df.columns})
+                st.rerun()
+
 else:
     st.info("No deposit transactions recorded today.")
 
@@ -113,12 +130,25 @@ else:
 st.markdown("#### Withdrawals")
 if st.session_state.withdrawals:
     withdrawal_df = pd.DataFrame(st.session_state.withdrawals)
-    st.dataframe(withdrawal_df, use_container_width=True)
+
+    edited_withdrawal_df = st.data_editor(
+        withdrawal_df,
+        num_rows="dynamic",
+        use_container_width=True
+    )
+
+    st.session_state.withdrawals = edited_withdrawal_df.to_dict("records")
 
     for i in range(len(st.session_state.withdrawals)):
-        if st.button(f"🗑 Delete Withdrawal {i+1}", key=f"del_wd_{i}"):
-            st.session_state.withdrawals.pop(i)
-            st.rerun()
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            if st.button(f"🗑", key=f"del_wd_{i}"):
+                st.session_state.withdrawals.pop(i)
+                st.rerun()
+        with col2:
+            if st.button(f"➕ Add Row Below Withdrawal {i+1}", key=f"add_wd_{i}"):
+                st.session_state.withdrawals.insert(i+1, {col: "" for col in withdrawal_df.columns})
+                st.rerun()
 else:
     st.info("No withdrawal transactions recorded today.")
 
@@ -129,12 +159,29 @@ if st.session_state.other_pos:
         {"POS Name": k, "Withdrawal": v["Withdrawal"], "Deposit": v["Deposit"]}
         for k, v in st.session_state.other_pos.items()
     ])
-    st.dataframe(pos_df, use_container_width=True)
+
+    edited_pos_df = st.data_editor(
+        pos_df,
+        num_rows="dynamic",
+        use_container_width=True
+    )
+
+    # Save edits back
+    st.session_state.other_pos = {
+        row["POS Name"]: {"Withdrawal": row["Withdrawal"], "Deposit": row["Deposit"]}
+        for _, row in edited_pos_df.iterrows() if row["POS Name"]
+    }
 
     for pos_name in list(st.session_state.other_pos.keys()):
-        if st.button(f"🗑 Delete {pos_name}", key=f"del_pos_{pos_name}"):
-            del st.session_state.other_pos[pos_name]
-            st.rerun()
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            if st.button(f"🗑", key=f"del_pos_{pos_name}"):
+                del st.session_state.other_pos[pos_name]
+                st.rerun()
+        with col2:
+            if st.button(f"➕ Add Row Below {pos_name}", key=f"add_pos_{pos_name}"):
+                st.session_state.other_pos[f"{pos_name}_new"] = {"Withdrawal": 0, "Deposit": 0}
+                st.rerun()
 else:
     st.info("No POS terminals recorded today.")
 

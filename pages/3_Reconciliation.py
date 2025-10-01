@@ -30,16 +30,20 @@ st.header("💵 Cash Summary")
 st.subheader("📈 Cash Inflows")
 opening_cash = st.session_state.get("opening_cash", 0.0)
 additional_cash = get_total("additional_cash")
+
+# Deposits
 deposits = st.session_state.get("deposits", [])
-total_deposits = sum(txn.get("Amount", 0.0) for txn in deposits)
+total_deposits = sum(txn.get("Actual Amount", 0.0) for txn in deposits)   # FIXED
 deposit_charges = sum(txn.get("Charge", 0.0) for txn in deposits)
+
+# Other POS Deposits
 other_pos_credit = sum(pos.get("Deposit", 0.0) for pos in st.session_state.get("other_pos", {}).values())
 
 st.write(f"**Opening Cash:** ₦{opening_cash:,.2f}")
 st.write(f"**Additional Cash:** ₦{additional_cash:,.2f}")
 for entry in st.session_state.get("additional_cash", []):
     st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
-st.write(f"**Paga Deposits:** ₦{total_deposits:,.2f}")
+st.write(f"**Paga Deposits (Actual):** ₦{total_deposits:,.2f}")
 st.write(f"**Deposit Charges:** ₦{deposit_charges:,.2f}")
 st.write(f"**Other POS Deposits:** ₦{other_pos_credit:,.2f}")
 
@@ -50,8 +54,12 @@ st.success(f"Total Cash Inflow: ₦{cash_credit_total:,.2f}")
 st.subheader("📉 Cash Outflows")
 expenses = get_total("expenses")
 branch_transfers = get_total("branch_transfers")
+
+# Withdrawals
 withdrawals = st.session_state.get("withdrawals", [])
-paga_withdrawals = sum(txn.get("Amount Paid Out", 0.0) for txn in withdrawals)
+paga_withdrawals = sum(txn.get("Amount Paid Out", 0.0) for txn in withdrawals)   # FIXED
+
+# Other POS Withdrawals
 other_pos_withdrawals = sum(pos.get("Withdrawal", 0.0) for pos in st.session_state.get("other_pos", {}).values())
 
 st.write(f"**Expenses:** ₦{expenses:,.2f}")
@@ -60,7 +68,7 @@ for entry in st.session_state.get("expenses", []):
 st.write(f"**Cash to Branches:** ₦{branch_transfers:,.2f}")
 for entry in st.session_state.get("branch_transfers", []):
     st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
-st.write(f"**Paga Withdrawals:** ₦{paga_withdrawals:,.2f}")
+st.write(f"**Paga Withdrawals (Cash Paid Out):** ₦{paga_withdrawals:,.2f}")
 st.write(f"**Other POS Withdrawals:** ₦{other_pos_withdrawals:,.2f}")
 
 cash_debit_total = expenses + branch_transfers + paga_withdrawals + other_pos_withdrawals

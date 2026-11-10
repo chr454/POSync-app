@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -26,7 +27,9 @@ st.markdown('<div class="page-container">', unsafe_allow_html=True)
 st.title("🏦 Moniepoint Transactions")
 st.markdown("""
 Record and manage Moniepoint withdrawals, POS transfers, and sales.
-You can edit individual cells, add rows, and delete transactions.
+
+You can edit individual cells, add new rows, and delete transactions
+directly from the tables.
 """)
 
 # =========================================================
@@ -36,6 +39,134 @@ You can edit individual cells, add rows, and delete transactions.
 st.session_state.setdefault("moniepoint_withdrawals", [])
 st.session_state.setdefault("moniepoint_transfers", [])
 st.session_state.setdefault("moniepoint_sales", [])
+
+
+# =========================================================
+# HELPER FUNCTIONS
+# =========================================================
+
+def clean_records(records, numeric_columns, text_columns):
+    """
+    Normalize records after editing.
+
+    Blank numeric cells become 0.0.
+    Blank text cells become empty strings.
+    Missing dates are automatically populated.
+    """
+
+    cleaned = []
+
+    for record in records:
+        row = dict(record)
+
+        # Ensure every record has a date
+        if not row.get("Date"):
+            row["Date"] = datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+
+        # Ensure numeric values are valid numbers
+        for column in numeric_columns:
+            value = pd.to_numeric(
+                row.get(column, 0),
+                errors="coerce"
+            )
+
+            row[column] = (
+                0.0 if pd.isna(value) else float(value)
+            )
+
+        # Ensure text values are strings
+        for column in text_columns:
+            value = row.get(column, "")
+            row[column] = "" if pd.isna(value) else str(value)
+
+        cleaned.append(row)
+
+    return cleaned
+
+
+def display_transaction_table(
+    state_key,
+    editor_key,
+    numeric_columns,
+    text_columns
+):
+    """
+    Display an editable transaction table.
+
+    Streamlit's data editor provides built-in row addition
+    and deletion through num_rows='dynamic'.
+    """
+
+    records = st.session_state[state_key]
+
+    if not records:
+        st.info("No transactions recorded yet.")
+        return
+
+    # Clean existing records before displaying them
+    records = clean_records(
+        records,
+        numeric_columns,
+        text_columns
+    )
+
+    st.session_state[state_key] = records
+
+    df = pd.DataFrame(records)
+
+    # Ensure expected columns exist
+    for column in numeric_columns + text_columns:
+        if column not in df.columns:
+            df[column] = 0.0 if column in numeric_columns else ""
+
+    if "Date" not in df.columns:
+        df["Date"] = ""
+
+    # Keep a consistent column order
+    columns = ["Date"] + text_columns + numeric_columns
+    df = df[columns]
+
+    # Configure numeric columns
+    column_config = {
+        "Date": st.column_config.TextColumn(
+            "Date",
+            disabled=True
+        )
+    }
+
+    for column in numeric_columns:
+        column_config[column] = st.column_config.NumberColumn(
+            column,
+            min_value=0.0,
+            step=100.0,
+            format="₦%.2f"
+        )
+
+    for column in text_columns:
+        column_config[column] = st.column_config.TextColumn(
+            column
+        )
+
+    edited_df = st.data_editor(
+        df,
+        num_rows="dynamic",
+        use_container_width=True,
+        hide_index=True,
+        column_config=column_config,
+        key=editor_key
+    )
+
+    # Save and normalize edited records
+    updated_records = edited_df.to_dict("records")
+
+    st.session_state[state_key] = clean_records(
+        updated_records,
+        numeric_columns,
+        text_columns
+    )
+
 
 # =========================================================
 # MONIEPOINT WITHDRAWAL FORM
@@ -76,6 +207,7 @@ with st.form("moniepoint_withdrawal_form", clear_on_submit=True):
     )
 
     if mw_submit:
+
         st.session_state.moniepoint_withdrawals.append({
             "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Amount Withdrawn": mw_amount_withdrawn,
@@ -86,6 +218,7 @@ with st.form("moniepoint_withdrawal_form", clear_on_submit=True):
         st.success("Moniepoint withdrawal recorded.")
 
 st.markdown('</div>', unsafe_allow_html=True)
+
 
 # =========================================================
 # MONIEPOINT POS TRANSFER FORM
@@ -126,6 +259,7 @@ with st.form("moniepoint_transfer_form", clear_on_submit=True):
     )
 
     if mt_submit:
+
         st.session_state.moniepoint_transfers.append({
             "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Money Received": mt_money_received,
@@ -136,6 +270,7 @@ with st.form("moniepoint_transfer_form", clear_on_submit=True):
         st.success("Moniepoint transfer recorded.")
 
 st.markdown('</div>', unsafe_allow_html=True)
+
 
 # =========================================================
 # MONIEPOINT SALES FORM
@@ -180,6 +315,7 @@ with st.form("moniepoint_sales_form", clear_on_submit=True):
     )
 
     if ms_submit:
+
         st.session_state.moniepoint_sales.append({
             "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "Transaction Type": ms_transaction_type,
@@ -192,6 +328,7 @@ with st.form("moniepoint_sales_form", clear_on_submit=True):
 
 st.markdown('</div>', unsafe_allow_html=True)
 
+
 # =========================================================
 # TRANSACTION TABLES
 # =========================================================
@@ -199,61 +336,24 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("---")
 st.subheader("📋 Moniepoint Transaction Records")
 
+
 # =========================================================
 # WITHDRAWALS TABLE
 # =========================================================
 
 st.markdown("#### 💸 Withdrawals")
 
-if st.session_state.moniepoint_withdrawals:
+display_transaction_table(
+    state_key="moniepoint_withdrawals",
+    editor_key="moniepoint_withdrawal_editor",
+    numeric_columns=[
+        "Amount Withdrawn",
+        "Amount Paid Out",
+        "Charge"
+    ],
+    text_columns=[]
+)
 
-    withdrawal_df = pd.DataFrame(
-        st.session_state.moniepoint_withdrawals
-    )
-
-    edited_withdrawal_df = st.data_editor(
-        withdrawal_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        key="moniepoint_withdrawal_editor"
-    )
-
-    st.session_state.moniepoint_withdrawals = (
-        edited_withdrawal_df.to_dict("records")
-    )
-
-    for i in range(len(st.session_state.moniepoint_withdrawals)):
-
-        col1, col2 = st.columns([1, 5])
-
-        with col1:
-            if st.button(
-                "🗑 Delete",
-                key=f"delete_mw_{i}"
-            ):
-                st.session_state.moniepoint_withdrawals.pop(i)
-                st.rerun()
-
-        with col2:
-            if st.button(
-                f"➕ Add Row Below Withdrawal {i + 1}",
-                key=f"add_mw_{i}"
-            ):
-                columns = withdrawal_df.columns.tolist()
-
-                new_row = {
-                    column: "" for column in columns
-                }
-
-                st.session_state.moniepoint_withdrawals.insert(
-                    i + 1,
-                    new_row
-                )
-
-                st.rerun()
-
-else:
-    st.info("No Moniepoint withdrawals recorded yet.")
 
 # =========================================================
 # POS TRANSFERS TABLE
@@ -261,55 +361,17 @@ else:
 
 st.markdown("#### 🔄 POS Transfers")
 
-if st.session_state.moniepoint_transfers:
+display_transaction_table(
+    state_key="moniepoint_transfers",
+    editor_key="moniepoint_transfer_editor",
+    numeric_columns=[
+        "Money Received",
+        "Money Paid Out",
+        "Charge"
+    ],
+    text_columns=[]
+)
 
-    transfer_df = pd.DataFrame(
-        st.session_state.moniepoint_transfers
-    )
-
-    edited_transfer_df = st.data_editor(
-        transfer_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        key="moniepoint_transfer_editor"
-    )
-
-    st.session_state.moniepoint_transfers = (
-        edited_transfer_df.to_dict("records")
-    )
-
-    for i in range(len(st.session_state.moniepoint_transfers)):
-
-        col1, col2 = st.columns([1, 5])
-
-        with col1:
-            if st.button(
-                "🗑 Delete",
-                key=f"delete_mt_{i}"
-            ):
-                st.session_state.moniepoint_transfers.pop(i)
-                st.rerun()
-
-        with col2:
-            if st.button(
-                f"➕ Add Row Below Transfer {i + 1}",
-                key=f"add_mt_{i}"
-            ):
-                columns = transfer_df.columns.tolist()
-
-                new_row = {
-                    column: "" for column in columns
-                }
-
-                st.session_state.moniepoint_transfers.insert(
-                    i + 1,
-                    new_row
-                )
-
-                st.rerun()
-
-else:
-    st.info("No Moniepoint transfers recorded yet.")
 
 # =========================================================
 # SALES TABLE
@@ -317,54 +379,18 @@ else:
 
 st.markdown("#### 🛒 Sales")
 
-if st.session_state.moniepoint_sales:
+display_transaction_table(
+    state_key="moniepoint_sales",
+    editor_key="moniepoint_sales_editor",
+    numeric_columns=[
+        "Amount",
+        "Charge"
+    ],
+    text_columns=[
+        "Transaction Type",
+        "Details"
+    ]
+)
 
-    sales_df = pd.DataFrame(
-        st.session_state.moniepoint_sales
-    )
-
-    edited_sales_df = st.data_editor(
-        sales_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        key="moniepoint_sales_editor"
-    )
-
-    st.session_state.moniepoint_sales = (
-        edited_sales_df.to_dict("records")
-    )
-
-    for i in range(len(st.session_state.moniepoint_sales)):
-
-        col1, col2 = st.columns([1, 5])
-
-        with col1:
-            if st.button(
-                "🗑 Delete",
-                key=f"delete_ms_{i}"
-            ):
-                st.session_state.moniepoint_sales.pop(i)
-                st.rerun()
-
-        with col2:
-            if st.button(
-                f"➕ Add Row Below Sale {i + 1}",
-                key=f"add_ms_{i}"
-            ):
-                columns = sales_df.columns.tolist()
-
-                new_row = {
-                    column: "" for column in columns
-                }
-
-                st.session_state.moniepoint_sales.insert(
-                    i + 1,
-                    new_row
-                )
-
-                st.rerun()
-
-else:
-    st.info("No Moniepoint sales recorded yet.")
 
 st.markdown('</div>', unsafe_allow_html=True)

@@ -561,6 +561,8 @@ st.error(
 
 
 # ============================================================
+
+# ============================================================
 # 🧮 CAPITAL RECONCILIATION RESULT
 # ============================================================
 
@@ -580,9 +582,5 @@ if st.button("🔍 Reconcile Capital Summary"):
             f"Capital Deficit: ₦{abs(capital_result):,.2f}"
         )
 
-
 st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.error(f"Capital Deficit: ₦{capital_result:,.2f}")
 
-st.markdown('</div>', unsafe_allow_html=True)

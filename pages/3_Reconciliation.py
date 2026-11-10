@@ -39,6 +39,47 @@ deposit_charges = sum(txn.get("Charge", 0.0) for txn in deposits)
 # Other POS Deposits
 other_pos_credit = sum(pos.get("Deposit", 0.0) for pos in st.session_state.get("other_pos", {}).values())
 
+# Moniepoint transactions
+moniepoint_withdrawals = st.session_state.get(
+    "moniepoint_withdrawals", []
+)
+
+moniepoint_transfers = st.session_state.get(
+    "moniepoint_transfers", []
+)
+
+moniepoint_sales = st.session_state.get(
+    "moniepoint_sales", []
+)
+
+# Moniepoint withdrawal charges
+moniepoint_withdrawal_charges = sum(
+    txn.get("Charge", 0.0)
+    for txn in moniepoint_withdrawals
+)
+
+# Moniepoint transfer inflows
+moniepoint_transfer_received = sum(
+    txn.get("Money Received", 0.0)
+    for txn in moniepoint_transfers
+)
+
+moniepoint_transfer_charges = sum(
+    txn.get("Charge", 0.0)
+    for txn in moniepoint_transfers
+)
+
+# Moniepoint sales
+moniepoint_sales_amount = sum(
+    txn.get("Amount", 0.0)
+    for txn in moniepoint_sales
+)
+
+moniepoint_sales_charges = sum(
+    txn.get("Charge", 0.0)
+    for txn in moniepoint_sales
+)
+
 st.write(f"**Opening Cash:** ₦{opening_cash:,.2f}")
 st.write(f"**Additional Cash:** ₦{additional_cash:,.2f}")
 for entry in st.session_state.get("additional_cash", []):
@@ -46,8 +87,43 @@ for entry in st.session_state.get("additional_cash", []):
 st.write(f"**Paga Deposits (Actual):** ₦{total_deposits:,.2f}")
 st.write(f"**Deposit Charges:** ₦{deposit_charges:,.2f}")
 st.write(f"**Other POS Deposits:** ₦{other_pos_credit:,.2f}")
+st.write(
+    f"**Moniepoint Withdrawal Charges:** "
+    f"₦{moniepoint_withdrawal_charges:,.2f}"
+)
 
-cash_credit_total = opening_cash + additional_cash + total_deposits + deposit_charges + other_pos_credit
+st.write(
+    f"**Moniepoint Transfer Received:** "
+    f"₦{moniepoint_transfer_received:,.2f}"
+)
+
+st.write(
+    f"**Moniepoint Transfer Charges:** "
+    f"₦{moniepoint_transfer_charges:,.2f}"
+)
+
+st.write(
+    f"**Moniepoint Sales:** "
+    f"₦{moniepoint_sales_amount:,.2f}"
+)
+
+st.write(
+    f"**Moniepoint Sales Charges:** "
+    f"₦{moniepoint_sales_charges:,.2f}"
+)
+
+cash_credit_total = (
+    opening_cash
+    + additional_cash
+    + total_deposits
+    + deposit_charges
+    + other_pos_credit
+    + moniepoint_withdrawal_charges
+    + moniepoint_transfer_received
+    + moniepoint_transfer_charges
+    + moniepoint_sales_amount
+    + moniepoint_sales_charges
+)
 st.success(f"Total Cash Inflow: ₦{cash_credit_total:,.2f}")
 
 # Debit Side
@@ -62,6 +138,18 @@ paga_withdrawals = sum(txn.get("Amount Paid Out", 0.0) for txn in withdrawals)  
 # Other POS Withdrawals
 other_pos_withdrawals = sum(pos.get("Withdrawal", 0.0) for pos in st.session_state.get("other_pos", {}).values())
 
+# Moniepoint withdrawal outflows
+moniepoint_withdrawal_paid_out = sum(
+    txn.get("Amount Paid Out", 0.0)
+    for txn in moniepoint_withdrawals
+)
+
+# Moniepoint transfer outflows
+moniepoint_transfer_paid_out = sum(
+    txn.get("Money Paid Out", 0.0)
+    for txn in moniepoint_transfers
+)
+
 st.write(f"**Expenses:** ₦{expenses:,.2f}")
 for entry in st.session_state.get("expenses", []):
     st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
@@ -70,8 +158,24 @@ for entry in st.session_state.get("branch_transfers", []):
     st.markdown(f"- ₦{entry['amount']:,.2f} — {entry['description']}")
 st.write(f"**Paga Withdrawals (Cash Paid Out):** ₦{paga_withdrawals:,.2f}")
 st.write(f"**Other POS Withdrawals:** ₦{other_pos_withdrawals:,.2f}")
+st.write(
+    f"**Moniepoint Withdrawals Paid Out:** "
+    f"₦{moniepoint_withdrawal_paid_out:,.2f}"
+)
 
-cash_debit_total = expenses + branch_transfers + paga_withdrawals + other_pos_withdrawals
+st.write(
+    f"**Moniepoint Transfers Paid Out:** "
+    f"₦{moniepoint_transfer_paid_out:,.2f}"
+)
+
+cash_debit_total = (
+    expenses
+    + branch_transfers
+    + paga_withdrawals
+    + other_pos_withdrawals
+    + moniepoint_withdrawal_paid_out
+    + moniepoint_transfer_paid_out
+)
 st.error(f"Total Cash Outflow: ₦{cash_debit_total:,.2f}")
 
 # Result

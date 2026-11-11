@@ -1,18 +1,48 @@
+
 import streamlit as st
 from PIL import Image
 
-# Load custom CSS
+from auth import (
+    is_authenticated,
+    render_login,
+    current_user,
+    logout
+)
+
+# === Load Custom CSS ===
 with open("styles/style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
 
 # === Sidebar Branding ===
-#st.sidebar.image("assets/posync-logo.png", use_column_width=True)
 st.sidebar.title("📊 POSync")
 st.sidebar.markdown("**Smart Reconciliation Dashboard**")
 st.sidebar.divider()
+
+# === Authentication Check ===
+if not is_authenticated():
+    render_login()
+    st.stop()
+
+# === Logged-in User Information ===
+user = current_user()
+
+display_name = user.get("full_name") or user.get("email")
+
+st.sidebar.markdown(f"**Logged in as:** {display_name}")
+st.sidebar.caption(f"Role: {user.get('role', '').title()}")
+
+# === Logout ===
+if st.sidebar.button("Log out", use_container_width=True):
+    logout()
+    st.rerun()
+
+st.sidebar.divider()
 st.sidebar.markdown("Use the **sidebar** to navigate pages.")
 
-# === Page Content ===
+# === Main Dashboard ===
 st.markdown('<div class="page-container">', unsafe_allow_html=True)
 
 # Hero Section
@@ -25,14 +55,26 @@ st.markdown("""
 
 # Summary Cards
 col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown('<div class="card"><h3>Total Deposits</h3><p>₦0.00</p></div>', unsafe_allow_html=True)
-with col2:
-    st.markdown('<div class="card"><h3>Total Withdrawals</h3><p>₦0.00</p></div>', unsafe_allow_html=True)
-with col3:
-    st.markdown('<div class="card"><h3>Outstanding Transfers</h3><p>₦0.00</p></div>', unsafe_allow_html=True)
 
-# Optional: Banner or Logo
+with col1:
+    st.markdown(
+        '<div class="card"><h3>Total Deposits</h3><p>₦0.00</p></div>',
+        unsafe_allow_html=True
+    )
+
+with col2:
+    st.markdown(
+        '<div class="card"><h3>Total Withdrawals</h3><p>₦0.00</p></div>',
+        unsafe_allow_html=True
+    )
+
+with col3:
+    st.markdown(
+        '<div class="card"><h3>Outstanding Transfers</h3><p>₦0.00</p></div>',
+        unsafe_allow_html=True
+    )
+
+# Banner or Logo
 st.image("assets/placeholder.jpeg", use_container_width=True)
 
 st.markdown('</div>', unsafe_allow_html=True)

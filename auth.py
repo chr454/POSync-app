@@ -1,4 +1,56 @@
 
+import streamlit as st
+from supabase import create_client
+
+
+def get_supabase_client():
+    """Create and return a Supabase client for this Streamlit session."""
+    if "posync_supabase" not in st.session_state:
+        try:
+            supabase_url = st.secrets["SUPABASE_URL"]
+            supabase_key = st.secrets["SUPABASE_KEY"]
+        except KeyError as exc:
+            raise RuntimeError(
+                "Supabase configuration is missing. "
+                "Check Streamlit Secrets."
+            ) from exc
+
+        st.session_state["posync_supabase"] = create_client(
+            supabase_url,
+            supabase_key
+        )
+
+    return st.session_state["posync_supabase"]
+
+
+def login(email: str, password: str):
+    """Authenticate a user and load their POSync profile."""
+    email = email.strip()
+
+    if not email or not password:
+        return False, "Please enter both your email and password."
+
+    try:
+        supabase = get_supabase_client()
+
+        auth_response = supabase.auth.sign_in_with_password({
+            "email": email,
+            "password": password
+        })
+
+        if not auth_response.user or not auth_response.session:
+            return False, "Login failed. Please check your details."
+
+        user_id = auth_response.user.id
+
+        profile_response = (
+            supabase.table("profiles")
+            .select("user_id, business_id, role, full_name")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+
         profiles = profile_response.data or []
 
         if not profiles:
@@ -6,7 +58,7 @@
             return (
                 False,
                 "Your account is not linked to a POSync business. "
-                "Please contact the business owner.",
+                "Please contact the business owner."
             )
 
         profile = profiles[0]
@@ -16,9 +68,6 @@
             supabase.auth.sign_out()
             return False, "Your POSync account has an invalid role."
 
-        # Keep only non-secret user/profile details in Streamlit session state.
-        # The Supabase client retains the authenticated session for this
-        # Streamlit browser session.
         st.session_state["posync_user"] = {
             "id": user_id,
             "email": auth_response.user.email or email,
@@ -30,11 +79,11 @@
         return True, "Login successful."
 
     except Exception:
-        # Avoid displaying raw authentication/database exceptions to users.
         return (
             False,
-            "Login failed. Check your details and connection, then try again. "
-            "If the problem continues, contact the POSync administrator.",
+            "Login failed. Check your details and connection, "
+            "then try again. If the problem continues, "
+            "contact the POSync administrator."
         )
 
 
@@ -46,13 +95,9 @@ def logout():
         try:
             supabase.auth.sign_out()
         except Exception:
-            # Clear the local app session even if the remote sign-out fails.
             pass
 
-    for key in (
-        "posync_user",
-        "posync_supabase",
-    ):
+    for key in ("posync_user", "posync_supabase"):
         st.session_state.pop(key, None)
 
 
@@ -67,12 +112,7 @@ def is_authenticated():
 
 
 def require_auth(allowed_roles=None):
-    """
-    Protect a page from unauthenticated access.
-
-    Call this near the top of every file in the pages/ directory.
-    Optionally pass allowed_roles, e.g. ["owner"].
-    """
+    """Protect a page from unauthenticated or unauthorized access."""
     user = current_user()
 
     if user is None:
@@ -87,22 +127,24 @@ def require_auth(allowed_roles=None):
 
 
 def render_login():
-    """Display the POSync login form on the home page."""
+    """Display the POSync login form."""
     st.title("POSync Login")
     st.write("Sign in with your business account to continue.")
 
     with st.form("posync_login_form"):
         email = st.text_input(
             "Email address",
-            placeholder="name@example.com",
+            placeholder="name@example.com"
         )
+
         password = st.text_input(
             "Password",
-            type="password",
+            type="password"
         )
+
         submitted = st.form_submit_button(
             "Log in",
-            use_container_width=True,
+            use_container_width=True
         )
 
     if submitted:

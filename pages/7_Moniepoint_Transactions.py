@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from auth import require_auth
 
 # =========================================================
 # PAGE SETUP
@@ -11,6 +12,8 @@ st.set_page_config(
     page_title="Moniepoint Transactions",
     layout="wide"
 )
+# Protect this page: only authenticated users can access it
+user = require_auth()
 
 # Load CSS if available
 try:

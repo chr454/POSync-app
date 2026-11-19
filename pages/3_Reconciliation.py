@@ -1,6 +1,11 @@
+
 import streamlit as st
+from auth import require_auth
 
 st.set_page_config(page_title="Reconciliation", layout="wide")
+
+# Protect this page: only authenticated users can access it
+user = require_auth()
 
 # Load CSS
 try:
@@ -8,6 +13,7 @@ try:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 except FileNotFoundError:
     st.warning("Style file not found.")
+
 
 st.markdown('<div class="page-container">', unsafe_allow_html=True)
 

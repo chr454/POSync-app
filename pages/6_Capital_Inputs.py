@@ -1,6 +1,11 @@
 import streamlit as st
+from auth import require_auth
 
 st.set_page_config(page_title="Capital Inputs", layout="wide")
+
+# Protect this page: only authenticated users can access it
+user = require_auth()
+
 st.title("🏛 Capital Summary Inputs")
 
 st.markdown("""

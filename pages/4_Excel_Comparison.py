@@ -1,7 +1,12 @@
+
 import streamlit as st
 import pandas as pd
+from auth import require_auth
 
 st.set_page_config(page_title="Compare Excel Files", layout="wide")
+
+# Protect this page: only authenticated users can access it
+user = require_auth()
 
 # Load CSS
 try:
@@ -9,6 +14,7 @@ try:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 except FileNotFoundError:
     pass
+
 
 st.markdown('<div class="page-container">', unsafe_allow_html=True)
 

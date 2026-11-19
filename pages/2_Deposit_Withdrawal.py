@@ -2,9 +2,12 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+from auth import require_auth
 
 # === Setup ===
 st.set_page_config(page_title="Deposit & Withdrawal", layout="wide")
+# Protect this page: only authenticated users can access it
+user = require_auth()
 
 # Load CSS if available
 try:

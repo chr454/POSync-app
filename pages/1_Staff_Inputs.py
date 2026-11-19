@@ -1,6 +1,9 @@
 import streamlit as st
+from auth import require_auth
 
 st.set_page_config(page_title="Staff Inputs", layout="wide")
+# Protect this page: only authenticated users can access it
+user = require_auth()
 
 # ✅ Safe rerun trigger
 def safe_rerun():
